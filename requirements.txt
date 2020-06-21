@@ -28,4 +28,4 @@ toml==0.10.1
 tornado==6.0.4
 tqdm==4.46.1
 zipp==3.1.0
-gunicorn==19.3.0
+gunicorn==19.5.0
