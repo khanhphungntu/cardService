@@ -1,6 +1,5 @@
 steps:
 - name: gcr.io/cloud-builders/gsutil
-  args: ['cp', 'gs://$_BUCKET/app.yaml', 'html/app.yaml']
+  args: ['cp', 'gs://$_BUCKET/app.yaml', 'app.yaml']
 - name: 'gcr.io/cloud-builders/gcloud'
-  args: ['app', 'deploy', 'html/']
-  timeout: '16000s'
+  args: ['app', 'deploy']
