@@ -3,3 +3,4 @@ steps:
   args: ['cp', 'gs://$_BUCKET/app.yaml', 'app.yaml']
 - name: 'gcr.io/cloud-builders/gcloud'
   args: ['app', 'deploy']
+  
