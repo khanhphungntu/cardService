@@ -1,3 +1,4 @@
+gunicorn==19.7.1
 asgiref==3.2.9
 autopep8==1.5.3
 cffi==1.14.0
@@ -28,4 +29,3 @@ toml==0.10.1
 tornado==6.0.4
 tqdm==4.46.1
 zipp==3.1.0
-gunicorn==19.3.0
