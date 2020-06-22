@@ -1,10 +1,11 @@
 from django.urls import path
 from . import views
-from .controllers.CardHolderController import CardHolderController
+from .controllers.CardHolderController import CardHolderListController, CardHolderDetailController
 
-cardHolderController = CardHolderController()
+cardHolderListController = CardHolderListController()
+cardHolderDetailController = CardHolderDetailController()
 
 urlpatterns = [
-    path('card/add', cardHolderController.create, name='addCard'),
-    path('card/delete', cardHolderController.delete, name='deleteCard'),
+    path('card', cardHolderListController.as_view(), name='CardList'),
+    path('card/<str:publicKey>', cardHolderDetailController.as_view(), name="CardDetail")
 ]

@@ -1,84 +1,64 @@
 from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
 from ..dbmodel.CardHolderModel import CardHolderModel
+from ..serializer.CardHolderSerializer import CardHolderSerializer
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.views import APIView
+from django.forms.models import model_to_dict
 from ..utils import crypto
 from django.core.exceptions import ObjectDoesNotExist
 from .BaseController import BaseController
 import re
 import json
 
-class CardHolderController(BaseController):
+
+class CardHolderListController(BaseController, APIView):
 
     def __init__(self):
         super().__init__()
 
-    @csrf_exempt
-    def create(self, request):
-        if request.method == 'POST':
-            content = self.bodyParser(request.body)
-            if content == False:
-                return JsonResponse(self.invalidJson, status=400)
+    def post(self, request):
 
-            validator = self.createValidator(content)
-            if validator != True:
-                return JsonResponse(validator, status=400)
+        content = request.data
+        validator = self.createValidator(content)
 
-            email = content['email']
-            cardNo = content['card_number']
-            fullName = content['full_name']
-            expiryDate = content['expiry_date']
-            ccv = content['ccv']
+        if validator != True:
+            return JsonResponse(validator, status=400)
 
-            cardObj = {
-                "full_name": fullName,
-                "expiry_date": expiryDate,
-                "card_number": cardNo,
-                "ccv": ccv
-            }
+        email = content['email']
+        cardNo = content['card_number']
+        fullName = content['full_name']
+        expiryDate = content['expiry_date']
+        ccv = content['ccv']
 
-            token = crypto.encrypt(cardObj)
-            publicKey = crypto.publicKeyGenerator()
+        cardObj = {
+            "full_name": fullName,
+            "expiry_date": expiryDate,
+            "card_number": cardNo,
+            "ccv": ccv
+        }
 
-            try:
-                instance = CardHolderModel(
-                    token=token,
-                    public_key=publicKey
-                )
+        token = crypto.encrypt(cardObj)
+        publicKey = crypto.publicKeyGenerator()
 
-                instance.save()
-            except Exception as err:
-                response = {"Error": "An error occurs"}
-                return JsonResponse(response, status=400)
-
-            success = {
-                "email": email,
+        try:
+            instance = {
+                "token": token,
                 "public_key": publicKey
             }
 
-            return JsonResponse(success, status = 201)
-        else:
-            return HttpResponseBadRequest()
+            serializer = CardHolderSerializer(data=instance)
+            serializer.is_valid(True)
+            serializer.save()
+        except Exception as err:
+            response = {"Error": "An error occurs"}
+            return JsonResponse(response, status=400)
 
-    @csrf_exempt
-    def delete(self, request):
-        if request.method == 'DELETE':
-            content = self.bodyParser(request.body)
-            if content == False:
-                return JsonResponse(self.invalidJson, status=400)
+        success = {
+            "email": email,
+            "public_key": publicKey
+        }
 
-            publicKey = content['public_key']
-
-            try:
-                instance = CardHolderModel.objects.get(public_key=publicKey)
-            except ObjectDoesNotExist as err:
-                response = {"Error": "Public key does not match any record"}
-                return JsonResponse(response, status=404)
-
-            instance.delete()
-            success = {"response": "Record is deleted successfully!"}
-            return JsonResponse(success, status = 200)
-        else:
-            return HttpResponseBadRequest()
+        return JsonResponse(success, status=201)
 
     def createValidator(self, content):
         if "email" not in content:
@@ -100,7 +80,7 @@ class CardHolderController(BaseController):
             return {"Error": "Invalid CCV"}
 
         expiryDatePattern = re.compile("[0-1][1-2][/][0-9][0-9]")
-        
+
         if not expiryDatePattern.match(content["expiry_date"]):
             return {"Error": "Expiry date is in wrong format"}
 
@@ -108,3 +88,33 @@ class CardHolderController(BaseController):
             return {"Error": "Invalid card number!"}
 
         return True
+
+
+class CardHolderDetailController(BaseController, APIView):
+    def __init__(self):
+        super().__init__()
+
+    def get(self, request, publicKey):
+        try:
+            instance = CardHolderModel.objects.get(public_key=publicKey)
+        except ObjectDoesNotExist as err:
+            response = {"Error": "Public key does not match any record"}
+            return JsonResponse(response, status=404)
+
+        cardDetails = crypto.decrypt(instance.token)
+        response = {
+            "public_key": instance.public_key,
+            "card_details": cardDetails
+        }
+        return JsonResponse(response, status=200)
+
+    def delete(self, request, publicKey):
+        try:
+            instance = CardHolderModel.objects.get(public_key=publicKey)
+        except ObjectDoesNotExist as err:
+            response = {"Error": "Public key does not match any record"}
+            return JsonResponse(response, status=404)
+
+        instance.delete()
+        success = {"response": "Record is deleted successfully!"}
+        return JsonResponse(success, status=200)
