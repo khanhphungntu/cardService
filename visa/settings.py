@@ -109,6 +109,11 @@ else:
         user = documents['env_variables']['USER'] 
         password = documents['env_variables']['PASSWORD']
         dbname = documents['env_variables']['NAME']
+        VISACA = documents['env_variables']['CA']
+        VISAKEY = documents['env_variables']['KEY']
+        VISACERT = documents['env_variables']['CERT']
+        VISAUSERID = documents['env_variables']['USERID']
+        VISAPWD = documents['env_variables']['PWD']
 
     DATABASES = {
         'default': {
@@ -119,6 +124,8 @@ else:
             'PASSWORD': password,
         }
     }
+
+
 
 
 # Password validation
@@ -158,3 +165,4 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
+

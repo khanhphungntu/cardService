@@ -1,5 +1,11 @@
 steps:
 - name: gcr.io/cloud-builders/gsutil
+  args: ['cp', 'gs://$_BUCKET/DigiCertGlobalRootCA.pem', 'DigiCertGlobalRootCA.pem']
+- name: gcr.io/cloud-builders/gsutil
+  args: ['cp', 'gs://$_BUCKET/private_key.pem', 'private_key.pem']
+- name: gcr.io/cloud-builders/gsutil
+  args: ['cp', 'gs://$_BUCKET/project_cert.pem', 'project_cert.pem']
+- name: gcr.io/cloud-builders/gsutil
   args: ['cp', 'gs://$_BUCKET/app.yaml', 'app.yaml']
 - name: 'gcr.io/cloud-builders/gcloud'
   args: ['app', 'deploy']

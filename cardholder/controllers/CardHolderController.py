@@ -1,6 +1,7 @@
 from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
 from ..dbmodel.CardHolderModel import CardHolderModel
 from ..serializer.CardHolderSerializer import CardHolderSerializer
+from .VisaAPIController import VisaAPIController
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
 from django.forms.models import model_to_dict
@@ -15,6 +16,7 @@ class CardHolderListController(BaseController, APIView):
 
     def __init__(self):
         super().__init__()
+        self.visaAPIController = VisaAPIController()
 
     def post(self, request):
 
@@ -36,6 +38,10 @@ class CardHolderListController(BaseController, APIView):
             "card_number": cardNo,
             "ccv": ccv
         }
+
+        validateCard = self.visaAPIController.accountValidation(cardObj)
+        if validateCard != True:
+            return JsonResponse(validateCard, status=400)
 
         token = crypto.encrypt(cardObj)
         publicKey = crypto.publicKeyGenerator()
@@ -79,9 +85,9 @@ class CardHolderListController(BaseController, APIView):
         if len(str(content["ccv"])) != 3:
             return {"Error": "Invalid CCV"}
 
-        expiryDatePattern = re.compile("[0-1][1-2][/][0-9][0-9]")
+        expiryDatePattern = "[0-1][0-2][/][0-9][0-9]"
 
-        if not expiryDatePattern.match(content["expiry_date"]):
+        if not re.findall(expiryDatePattern, content["expiry_date"]):
             return {"Error": "Expiry date is in wrong format"}
 
         if len(str(content["card_number"])) != 16:

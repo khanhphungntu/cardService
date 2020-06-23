@@ -1,2 +1,5 @@
 /app.yaml
 /.vscode
+/private_key.pem
+/project_cert.pem
+/DigiCertGlobalRootCA.pem
