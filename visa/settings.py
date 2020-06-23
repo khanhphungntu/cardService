@@ -96,13 +96,13 @@ if os.getenv('GAE_APPLICATION', None):
             'NAME': os.getenv('NAME', None),
         }
     }
-
-    VISACA = os.getenv('CA', None)
-    VISAKEY = os.getenv('KEY', None)
-    VISACERT = os.getenv('CERT', None)
-    VISAUSERID = os.getenv('USERID', None)
-    VISAPWD = os.getenv('PWD', None)
-
+    with open(BASE_DIR + "/app.yaml") as file:
+        documents = yaml.full_load(file)
+        VISACA = documents['env_variables']['VISACA']
+        VISAKEY = documents['env_variables']['VISAKEY']
+        VISACERT = documents['env_variables']['VISACERT']
+        VISAUSERID = documents['env_variables']['VISAUSERID']
+        VISAPWD = documents['env_variables']['VISAPWD']
 else:
     # Running locally so connect to either a local MySQL instance or connect to
     # Cloud SQL via the proxy. To start the proxy via command line:
