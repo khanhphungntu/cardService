@@ -96,6 +96,13 @@ if os.getenv('GAE_APPLICATION', None):
             'NAME': os.getenv('NAME', None),
         }
     }
+
+    VISACA = os.getenv('CA', None)
+    VISAKEY = os.getenv('KEY', None)
+    VISACERT = os.getenv('CERT', None)
+    VISAUSERID = os.getenv('USERID', None)
+    VISAPWD = os.getenv('PWD', None)
+
 else:
     # Running locally so connect to either a local MySQL instance or connect to
     # Cloud SQL via the proxy. To start the proxy via command line:
