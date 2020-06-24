@@ -103,6 +103,8 @@ if os.getenv('GAE_APPLICATION', None):
         VISACERT = documents['env_variables']['VISACERT']
         VISAUSERID = documents['env_variables']['VISAUSERID']
         VISAPWD = documents['env_variables']['VISAPWD']
+    
+    DEBUG = False
 else:
     # Running locally so connect to either a local MySQL instance or connect to
     # Cloud SQL via the proxy. To start the proxy via command line:
@@ -132,6 +134,7 @@ else:
         }
     }
 
+    DEBUG = True
 
 
 

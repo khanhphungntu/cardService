@@ -4,7 +4,6 @@ from ..serializer.CardHolderSerializer import CardHolderSerializer
 from .VisaAPIController import VisaAPIController
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
-from django.forms.models import model_to_dict
 from ..utils import crypto
 from django.core.exceptions import ObjectDoesNotExist
 from .BaseController import BaseController
@@ -66,7 +65,7 @@ class CardHolderListController(BaseController, APIView):
 
         return JsonResponse(success, status=201)
 
-    def createValidator(self, content):
+    def createValidator(self, content: dict):
         if "email" not in content:
             return {"Error": "Email can not be empty!"}
 
@@ -100,7 +99,7 @@ class CardHolderDetailController(BaseController, APIView):
     def __init__(self):
         super().__init__()
 
-    def get(self, request, publicKey):
+    def get(self, request, publicKey: str):
         try:
             instance = CardHolderModel.objects.get(public_key=publicKey)
         except ObjectDoesNotExist as err:
@@ -114,7 +113,7 @@ class CardHolderDetailController(BaseController, APIView):
         }
         return JsonResponse(response, status=200)
 
-    def delete(self, request, publicKey):
+    def delete(self, request, publicKey: str):
         try:
             instance = CardHolderModel.objects.get(public_key=publicKey)
         except ObjectDoesNotExist as err:

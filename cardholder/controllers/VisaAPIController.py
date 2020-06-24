@@ -2,20 +2,22 @@ import json
 import re
 import requests
 from django.conf import settings
-
+from datetime import datetime
+from ..utils import crypto
 
 class VisaAPIController():
 
-    def accountValidation(self, creditCard):
+    def __init__(self):
+        self.caPath = settings.VISACA
+        self.keyPath = settings.VISAKEY
+        self.certPath = settings.VISACERT
+        self.userId = settings.VISAUSERID
+        self.password = settings.VISAPWD
+
+    def accountValidation(self, creditCard: dict):
         validator = self.cardValidator(creditCard)
         if validator != True:
             return validator
-
-        caPath = settings.VISACA
-        keyPath = settings.VISAKEY
-        certPath = settings.VISACERT
-        userId = settings.VISAUSERID
-        password = settings.VISAPWD
 
         expiryDate = creditCard['expiry_date'].split('/')
         year = "20" + expiryDate[1]
@@ -28,11 +30,11 @@ class VisaAPIController():
         }
 
         response = requests.post("https://sandbox.api.visa.com/pav/v1/cardvalidation",
-                                 verify=caPath,
-                                 cert=(certPath, keyPath),
+                                 verify=self.caPath,
+                                 cert=(self.certPath, self.keyPath),
                                  headers={"Accept": "application/json",
                                           'Content-Type': 'application/json'},
-                                 auth=(userId, password),
+                                 auth=(self.userId, self.password),
                                  data=json.dumps(body))
 
         if response.status_code == 200:
@@ -45,7 +47,7 @@ class VisaAPIController():
         content = json.loads(response.text)
         return {"Error": content["errorMessage"]}
 
-    def cardValidator(self, creditCard):
+    def cardValidator(self, creditCard: dict):
         if "card_number" not in creditCard:
             return {"Error": "Card number can not be empty!"}
 
@@ -70,3 +72,62 @@ class VisaAPIController():
             return {"Error": "Invalid card number!"}
 
         return True
+
+    def pushTransaction(self, senderCard: dict, recipientCard: dict, amount: str, currency: str):
+        senderValidator = self.cardValidator(senderCard)
+
+        if senderValidator != True:
+            return senderValidator
+
+        receipientValidator = self.cardValidator(recipientCard)
+
+        if receipientValidator != True:
+            return receipientValidator
+
+        if not str(amount).isdigit():
+            return {"Error": "Invalid amount input!"}
+
+        currentTime = datetime.now().isoformat()
+        body = {
+            "acquirerCountryCode": "840",
+            "acquiringBin": "408999",
+            "amount": str(amount),
+            "businessApplicationId": "AA",
+            "cardAcceptor": {
+                "address": {
+                    "country": "USA",
+                    "state": "CA",
+                    "zipCode": "94404"
+                },
+                "idCode": "CA-IDCode-77765",
+                "name": "Acceptor 1",
+                "terminalId": "TID-9999"
+            },
+            "localTransactionDateTime": currentTime,
+            "recipientPrimaryAccountNumber": recipientCard["card_number"],
+            "recipientName": recipientCard["full_name"],
+            "retrievalReferenceNumber": "330000550000",
+            "senderAccountNumber": senderCard["card_number"],
+            "senderName": senderCard["full_name"],
+            "sourceOfFundsCode": "05",
+            "systemsTraceAuditNumber": "451000",
+            "transactionCurrencyCode": currency
+        }
+
+        response = requests.post("https://sandbox.api.visa.com/visadirect/fundstransfer/v1/pushfundstransactions",
+                            verify=self.caPath,
+                            cert=(self.certPath, self.keyPath),
+                            headers={"Accept": "application/json",
+                                    'Content-Type': 'application/json'},
+                            auth=(self.userId, self.password),
+                            data=json.dumps(body))
+        
+        if response.status_code == 200:
+            content = json.loads(response.text)
+            if content["actionCode"] == "00":
+                return {"status": True, "transactionIdentifier": content["transactionIdentifier"]}
+            else:
+                return {"status": False, "Error": "Invalid card details"}
+        
+        content = json.loads(response.text)
+        return {"status": False, "Error": content["errorMessage"]}
