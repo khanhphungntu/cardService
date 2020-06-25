@@ -49,27 +49,27 @@ class VisaAPIController():
 
     def cardValidator(self, creditCard: dict):
         if "card_number" not in creditCard:
-            return {"Error": "Card number can not be empty!"}
+            return {"status": False, "Error": "Card number can not be empty!"}
 
         if "full_name" not in creditCard:
-            return {"Error": "Card holder name can not be empty"}
+            return {"status": False, "Error": "Card holder name can not be empty"}
 
         if "expiry_date" not in creditCard:
-            return {"Error": "Expiry date can not be empty"}
+            return {"status": False, "Error": "Expiry date can not be empty"}
 
         if "ccv" not in creditCard:
-            return {"Error": "CCV can not be empty"}
+            return {"status": False, "Error": "CCV can not be empty"}
 
         if len(str(creditCard["ccv"])) != 3:
-            return {"Error": "Invalid CCV"}
+            return {"status": False, "Error": "Invalid CCV"}
 
         expiryDatePattern = "[0-1][0-2][/][0-9][0-9]"
 
         if not re.findall(expiryDatePattern, creditCard["expiry_date"]):
-            return {"Error": "Expiry date is in wrong format"}
+            return {"status": False, "Error": "Expiry date is in wrong format"}
 
         if len(str(creditCard["card_number"])) != 16:
-            return {"Error": "Invalid card number!"}
+            return {"status": False, "Error": "Invalid card number!"}
 
         return True
 
@@ -84,8 +84,10 @@ class VisaAPIController():
         if receipientValidator != True:
             return receipientValidator
 
-        if not str(amount).isdigit():
-            return {"Error": "Invalid amount input!"}
+        try: 
+            float(amount)
+        except ValueError:
+            return {"status": False, "Error": "Invalid amount input!"}
 
         currentTime = datetime.now().isoformat()
         body = {
@@ -127,7 +129,7 @@ class VisaAPIController():
             if content["actionCode"] == "00":
                 return {"status": True, "transactionIdentifier": content["transactionIdentifier"]}
             else:
-                return {"status": False, "Error": "Invalid card details"}
+                return {"status": False, "Error": "Card can not perform transaction"}
         
         content = json.loads(response.text)
         return {"status": False, "Error": content["errorMessage"]}
