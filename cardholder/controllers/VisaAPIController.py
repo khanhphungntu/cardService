@@ -123,9 +123,10 @@ class VisaAPIController():
                                     'Content-Type': 'application/json'},
                             auth=(self.userId, self.password),
                             data=json.dumps(body))
-        print(response)
+
         if response.status_code == 200:
             content = json.loads(response.text)
+            print(content)
             if content["actionCode"] == "00":
                 return {"status": True, "transactionIdentifier": content["transactionIdentifier"]}
             else:
