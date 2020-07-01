@@ -126,6 +126,7 @@ class VisaAPIController():
 
         if response.status_code == 200:
             content = json.loads(response.text)
+            print(response.headers)
             print(content)
             if content["actionCode"] == "00":
                 return {"status": True, "transactionIdentifier": content["transactionIdentifier"]}
